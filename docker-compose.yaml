@@ -1,0 +1,39 @@
+version: '3.8'
+
+services:
+  malcolm:
+    container_name: malcolm
+    build: 
+      context: .
+      dockerfile: Dockerfile
+    command: tail -f /dev/null
+    volumes:
+        - ./app:/app
+    networks:
+      - local-network
+    restart: unless-stopped 
+  ftp-server:
+    container_name: server
+    build:
+      context: ./ftp-server
+      dockerfile: Dockerfile
+    env_file:
+      - dev.env
+    ports:
+      - "21:21"
+      - "10000-10009"
+    networks:
+      - local-network
+    restart: unless-stopped 
+  ftp-client:
+    build:
+      context: ./ftp-client
+      dockerfile: Dockerfile
+    container_name: client
+    networks:
+      - local-network
+    restart: unless-stopped
+
+networks:
+  local-network:
+    driver: bridge
