@@ -12,7 +12,7 @@ int	is_mac_address(const char *mac)
 	int		i;
 	int		counter;
 
-	if (ft_strlen(mac) != MAC_ADDRESS_MAX_LEN)
+	if (ft_strlen(mac) != MAC_ADDRESS_MAX_LEN - 1)
 	{
 		return (0);
 	}
@@ -93,11 +93,4 @@ int	convert_mac_address_to_bytes(char *macAddr, unsigned char *mac_dst_addr)
 	}
 	ft_memcpy(mac_dst_addr, mac_addr, MAC_LENGTH);
 	return (1);
-}
-
-void	printMACaddress(char *msg, unsigned char *mac)
-{
-	fprintf(stdout, "%s MAC address: %02x:%02x:%02x:%02x:%02x:%02x\n", msg,
-                        mac[0], mac[1], mac[2],
-                        mac[3], mac[4], mac[5]);
 }

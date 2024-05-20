@@ -31,5 +31,6 @@ int ft_malcolm(t_machine *input)
         return (ret);
     }
     ret = listen_to_broadcast(input);
+    ret = send_reply(input);
     return (ret);
 }

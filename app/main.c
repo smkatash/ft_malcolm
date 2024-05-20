@@ -17,4 +17,4 @@ int main(int argc, char** argv)
     return (ft_malcolm(&input));
 }
 
-// ./ft_malcolm 192.168.80.3 02:42:c0:a8:50:03 192.168.80.2 02:42:c0:a8:50:02
+// ./ft_malcolm 192.168.112.3 02:42:c0:a8:70:03 192.168.112.2 02:42:c0:a8:70:02

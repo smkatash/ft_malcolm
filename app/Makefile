@@ -6,7 +6,7 @@
 #    By: kanykei <kanykei@student.42.fr>            +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2024/01/11 11:19:19 by kanykei           #+#    #+#              #
-#    Updated: 2024/05/17 16:51:25 by kanykei          ###   ########.fr        #
+#    Updated: 2024/05/19 15:48:32 by kanykei          ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -17,7 +17,7 @@ NAME		:= ft_malcolm
 
 VPATH		:= src
 
-SRC			:= main.c parser.c utils.c network.c socket.c malcolm.c packet.c
+SRC			:= main.c parser.c utils.c network.c socket.c malcolm.c packet.c logger.c
 
 # ================================ Flags ===================================== #
 OBJ			:= $(addprefix obj/,$(notdir $(SRC:.c=.o)))

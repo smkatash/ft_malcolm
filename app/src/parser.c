@@ -44,5 +44,6 @@ int parse_input(char **args, t_machine  *devices)
     inet_pton(AF_INET, devices->ip_src, &(devices->sa_src.sin_addr));
     inet_pton(AF_INET, devices->ip_dst, &(devices->sa_dst.sin_addr));
 
-	return (convert_mac_address_to_bytes(devices->mac_dst, devices->mac_dst_addr));
+	return (convert_mac_address_to_bytes(devices->mac_src, devices->mac_src_addr) && \
+	convert_mac_address_to_bytes(devices->mac_dst, devices->mac_dst_addr));
 }

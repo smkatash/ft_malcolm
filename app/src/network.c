@@ -17,7 +17,7 @@ static int    get_interface_address(struct ifaddrs *ifap ,char *ifname, t_machin
             if (s->sll_halen == MAC_LENGTH) {
                 ft_memcpy(devices->mac_if, s->sll_addr, MAC_LENGTH);
                 fprintf(stdout, "Found correct interface: %s\n", ifa->ifa_name);
-                printMACaddress("Interface", devices->mac_if);
+                logMACAddress("Interface", devices->mac_if);
                 devices->ifindex = s->sll_ifindex;
                 ret = 1;
                 break;
@@ -27,7 +27,6 @@ static int    get_interface_address(struct ifaddrs *ifap ,char *ifname, t_machin
     }
     return (ret);
 }
-
 
 int get_interface(t_machine  *devices)
 {
@@ -79,7 +78,7 @@ int listen_to_broadcast(t_machine *devices)
     
     while (1) {
         packet_size = recvfrom(devices->sock_fd, &buffer, BUFFER_SIZE, 0, (struct sockaddr *)&recv_addr, &addr_len);
-        if (packet_size == -1)
+        if (packet_size < 0)
         {
             fprintf(stderr, "Error receiving packet: %s\n", strerror(errno));
             continue;
@@ -95,4 +94,49 @@ int listen_to_broadcast(t_machine *devices)
         }
     }
     return (1);
+}
+
+int send_reply(t_machine *devices)
+{
+    unsigned char buffer[sizeof(struct ethhdr) + sizeof(struct arppckt)];
+
+    create_reply_packet(buffer, devices);
+    printf("REPLY PACKET:\n");
+    struct ethhdr *eth_header = (struct ethhdr *)buffer;
+    unsigned char *src_mac = eth_header->h_source;
+    unsigned char *dst_mac = eth_header->h_dest;
+    printf("Ethernet Header Info:\n");
+    logMACAddress(" Sender ", src_mac);
+    logMACAddress(" Target ", dst_mac);
+
+    struct arppckt *arp_packet = (struct arppckt *)(buffer + sizeof(struct ethhdr));
+    int op_code = -1;
+    
+    if (ntohs(arp_packet->ar_pro) != ETH_P_IP || ntohs(arp_packet->ar_hrd) != ARPHRD_ETHER) {
+        return (1);
+    }
+
+    op_code = ntohs(arp_packet->ar_op);
+    unsigned char *ar_sha = arp_packet->ar_sha;
+    unsigned char *ar_tha = arp_packet->ar_tha;
+    unsigned char *ar_sip = arp_packet->ar_sip;
+    unsigned char *ar_tip = arp_packet->ar_tip;
+
+    printf("ARP Packet Info:\n");
+    printf("  Operation: %s\n", op_code == ARPOP_REPLY ? "ARP Reply" : "ARP Request");
+    logIPAddress(" Sender ", ar_sip);
+    logIPAddress(" Target ", ar_tip);
+    logMACAddress(" Sender ", ar_sha);
+    logMACAddress(" Target ", ar_tha);
+
+    printf("%zu\n", sizeof(buffer));
+    if (sendto(devices->sock_fd, &buffer, sizeof(buffer), 0, (struct sockaddr*)&(devices)->sockaddr_dst, sizeof(devices->sockaddr_dst)) < 0)
+	{
+		fprintf(stderr, "sendto: failed\n");
+        close(devices->sock_fd);
+		return (1);
+	}
+	fprintf(stdout, "Sent an ARP reply packet, you may now check the arp table on the target.\n");
+    close(devices->sock_fd);
+    return (0);
 }
