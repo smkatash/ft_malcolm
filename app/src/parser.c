@@ -2,48 +2,80 @@
 
 char *parse_ip_address(char *addr)
 {
-	if (!is_ipv4(addr))
-	{
+	if (is_ipv4(addr))
 		return (NULL);
-	}
 	return addr;
 }
 
 char *parse_mac_address(char *addr)
 {
-	if (!is_mac_address(addr))
-	{
+	if (is_mac_address(addr))
 		return (NULL);
-	}
 	return addr;
 }
 
-int parse_input(char **args, t_machine  *devices)
+static int parse_options(int argc, char **args, t_malcolm  *data)
+{
+	for (int i = 5; i < argc; i++)
+	{
+		if (!data->verbose && !ft_strcmp(VERBOSE, args[i]))
+		{
+			data->verbose = 1;
+			continue ;
+		}
+		if (!data->gratutious && !ft_strcmp(GRATUTIOUS, args[i]))
+		{
+			data->gratutious = 1;
+			continue ;
+		}
+		if (!data->hostname && !ft_strcmp(HOSTNAME, args[i]))
+		{
+			data->hostname = 1;
+			continue ;
+		}
+		log_error(USAGE_INFO);
+		return (1);
+	}
+	return (0);
+}
+
+static int parse_address(char **args, t_malcolm  *data)
 {
 	char *ip_source = parse_ip_address(args[1]);
     char *ip_target = parse_ip_address(args[3]);
-	if ((!ip_source) || (!ip_target))
+	if (!ip_source || !ip_target)
 	{
-		fprintf(stderr, "ft_malcolm: unknown host or invalid IP address\n");
-		return (0);
+		log_error("unknown host or invalid IP address");
+		return (1);
+	}
+   	if (!inet_pton(AF_INET, ip_source, data->spoofed_ip) || \
+		!inet_pton(AF_INET, ip_target, data->target_ip))
+	{
+		log_error(strerror(errno));
+		return (1);
 	}
 	char *mac_source = parse_mac_address(args[2]);
     char *mac_target = parse_mac_address(args[4]);
 	if ((!mac_source) || (!mac_target))
 	{
-		fprintf(stderr, "ft_malcolm: invalid mac address\n");
-		return (0);
+		log_error("invalid mac address");
+		return (1);
 	}
 
-	ft_strlcpy(devices->ip_src, parse_ip_address(ip_source), ft_strlen(ip_source) + 1);
-	ft_strlcpy(devices->ip_dst, parse_ip_address(ip_target), ft_strlen(ip_target) + 1);
-	ft_strlcpy(devices->mac_src, parse_mac_address(mac_source), ft_strlen(mac_source) + 1);
-	ft_strlcpy(devices->mac_dst, parse_mac_address(mac_target), ft_strlen(mac_target) + 1);
+	if(convert_mac_address_to_bytes(mac_source, data->spoofed_mac) || \
+		convert_mac_address_to_bytes(mac_target, data->target_mac))
+	{
+		log_error("failed to convert mac address");
+		return (1);
+	}
+	return (0);
+}
 
-	// TODO do i need whole struct or only sin?
-    inet_pton(AF_INET, devices->ip_src, &(devices->sa_src.sin_addr));
-    inet_pton(AF_INET, devices->ip_dst, &(devices->sa_dst.sin_addr));
-
-	return (convert_mac_address_to_bytes(devices->mac_src, devices->mac_src_addr) && \
-	convert_mac_address_to_bytes(devices->mac_dst, devices->mac_dst_addr));
+int	parse_input(int argc, char **args, t_malcolm  *data)
+{
+	if (parse_address(args, data)) 
+        return (1);
+    if (parse_options(argc, args, data)) 
+        return (1);
+	return (0);
 }

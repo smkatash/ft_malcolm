@@ -18,21 +18,31 @@
 #include <linux/if_packet.h>
 #include <net/ethernet.h>
 #include <linux/if_arp.h>
+#include <signal.h>
 
 
 # define MAC_ADDRESS_MAX_LEN 18 // 17 + 1
-# define USAGE_INFO "usage: ./ft_malcolm [source ip] [source mac address] [target ip] [target mac address]\n"
 # define MAC_LENGTH 6
 # define IPV4_LENGTH 4
-# define BUFFER_SIZE 2048
+# define MIN_ETHERNET_FRAME_SIZE 64 
+# define ETH_FRAME_SIZE (sizeof(struct arppckt) + sizeof(struct ethhdr))
+# define VERBOSE "-v"
+# define HOSTNAME "-h"
+# define GRATUTIOUS "-g"
+# define USAGE_INFO "usage: ./ft_malcolm [source ip] [source mac address] [target ip] [target mac address] "\
+					"[...options]\n"\
+					"\t\t-v	verbose mode to print packet information.\n"\
+					"\t\t-g	gratuitous ARP broadcast.\n"\
+					"\t\t-h	hostname resolution for IPv4 addresses.\n"
+// frame minimum acceptable length of 64 bytes (ethhdr 14 bytes + arp packet 28 bytes + 4 bytes trailing) + 18 of padding
 
 /* from header if_arp.h for ethernet */
 struct arppckt {
-	uint16_t				ar_hrd;		/* format of hardware address	*/
-	uint16_t				ar_pro;		/* format of protocol address	*/
-	unsigned char			ar_hln;		/* length of hardware address	*/
-	unsigned char			ar_pln;		/* length of protocol address	*/
-	uint16_t				ar_op;		/* ARP opcode (command)		*/
+	uint16_t			ar_hrd;		/* format of hardware address	*/
+	uint16_t			ar_pro;		/* format of protocol address	*/
+	unsigned char		ar_hln;		/* length of hardware address	*/
+	unsigned char		ar_pln;		/* length of protocol address	*/
+	uint16_t			ar_op;		/* ARP opcode (command)		*/
 	 /*
 	  *	 Ethernet looks like this : This bit is variable sized however...
 	  */
@@ -42,39 +52,42 @@ struct arppckt {
 	unsigned char		ar_tip[IPV4_LENGTH];		/* target IP address		*/
 };
 
-typedef struct s_machine
+typedef struct s_malcolm
 {
-	char				ip_src[INET_ADDRSTRLEN];
-	char				mac_src[MAC_ADDRESS_MAX_LEN];
-	char				ip_dst[INET_ADDRSTRLEN];
-	char				mac_dst[MAC_ADDRESS_MAX_LEN];
-	unsigned char		mac_src_addr[MAC_LENGTH];
-	unsigned char		mac_dst_addr[MAC_LENGTH];
-	struct	sockaddr_in sa_src;
-    struct	sockaddr_in sa_dst;
-	unsigned char		ip_if[IPV4_LENGTH];
-	unsigned char		mac_if[MAC_LENGTH];
-	struct sockaddr_ll	sockaddr_dst; // sockaddr_ll structure is used to specify on which interface to send the packet and which protocol to set in the Ethernet header (EtherType field).
-	int					ifindex;
 	int					sock_fd;
-}			t_machine;
+	unsigned char		spoofed_mac[ETH_ALEN];
+	unsigned char		spoofed_ip[IPV4_LENGTH];
+	unsigned char		target_mac[ETH_ALEN];
+	unsigned char		target_ip[IPV4_LENGTH];
+	unsigned char		broadcast_addr[ETH_ALEN];
+	struct sockaddr_ll	sockaddr_target; // sockaddr_ll structure is used to specify on which interface to send the packet and which protocol to set in the Ethernet header (EtherType field).
+	unsigned int		ifindex;
+	char				ifname[IFNAMSIZ];
+	int					verbose;
+	int					gratutious;
+	int					hostname;
+}			t_malcolm;
 
-int		is_ipv4(const char *ip);
-int		is_mac_address(const char *mac);
-int		parse_input(char **args, t_machine  *devices);
-int		init_socket(t_machine  *devices);
-void	init_sockaddr_dest(t_machine  *devices);
-int		convert_mac_address_to_bytes(char *macAddr, unsigned char *mac_dst_addr);
-int		ft_malcolm(t_machine *input);
-int		get_interface(t_machine  *devices);
-int		process_ethernet_packet(unsigned char *buffer, t_machine *devices);
-int		listen_to_broadcast(t_machine *devices);
-void    create_reply_packet(unsigned char *packet, t_machine *device);
-int		send_reply(t_machine *devices);
-void	logMACAddress(char *msg, unsigned char *mac);
-void    logIPAddress(char *msg, unsigned char *ip);
+extern int	g_exit_code;
 
-
+int			is_ipv4(const char *ip);
+int			is_mac_address(const char *mac);
+int			parse_input(int argc, char **args, t_malcolm  *data);
+int			init_socket(t_malcolm  *data);
+int			convert_mac_address_to_bytes(char *macAddr, unsigned char *mac_dst_addr);
+int			ft_malcolm(t_malcolm *input);
+int			get_interface(t_malcolm  *data);
+int			process_packet(unsigned char *buffer, t_malcolm *data);
+int			listen_to_broadcast(t_malcolm *data);
+int			send_reply(t_malcolm *data);
+uint32_t	calculate_crc32(const unsigned char *data, size_t length);
+void		init_sockaddr_dest(t_malcolm  *data);
+void		create_reply_packet(unsigned char *packet, t_malcolm *data);
+void		log_mac_address(char *msg, unsigned char *mac);
+void		log_ip_address(char *msg, unsigned char *ip);
+void		log_error(char *msg);
+void		log_msg(char *msg, char *str);
+void		log_packet(unsigned char *packet);
 
 
 #endif

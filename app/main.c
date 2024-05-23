@@ -1,20 +1,31 @@
 #include "ft_malcolm.h"
 
+int	g_exit_code = 0;
+
+static void	sighandler(int sig)
+{
+	if (sig == SIGINT)
+		g_exit_code = 128 + sig;
+}
 
 int main(int argc, char** argv)
 {
-    t_machine   input;
-    if (argc != 5)
+    t_malcolm   input;
+
+    if (argc < 5 || argc > 8)
     {
-        fprintf(stderr, USAGE_INFO);
+        log_error(USAGE_INFO);
         return (EXIT_FAILURE);
     }
-    ft_memset(&input, 0, sizeof(t_machine));
-    if (!parse_input(argv, &input))
-    {
+    if (signal(SIGINT, &sighandler) == SIG_ERR) {
+        log_error("failed signal handler");
         return (EXIT_FAILURE);
     }
+    ft_memset(&input, 0, sizeof(t_malcolm));
+    if (parse_input(argc, argv, &input))
+        return (EXIT_FAILURE);
     return (ft_malcolm(&input));
 }
 
-// ./ft_malcolm 192.168.112.3 02:42:c0:a8:70:03 192.168.112.2 02:42:c0:a8:70:02
+
+// ./ft_malcolm 192.168.112.2 02:42:c0:a8:70:05 192.168.112.4 02:42:c0:a8:70:04
