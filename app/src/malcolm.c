@@ -18,7 +18,7 @@ static int    init_malcolm(t_malcolm  *data)
         return (ret);
     }
     init_sockaddr_dest(data);
-    ft_memset(data->broadcast_mac, 0xFF, ETH_ALEN);
+    ft_memset(data->broadcast_addr, 0xFF, ETH_ALEN);
     return (ret);
 }
 

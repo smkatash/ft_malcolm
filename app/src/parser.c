@@ -1,12 +1,5 @@
 #include "ft_malcolm.h"
 
-char *parse_ip_address(char *addr)
-{
-	if (is_ipv4(addr))
-		return (NULL);
-	return addr;
-}
-
 char *parse_mac_address(char *addr)
 {
 	if (is_mac_address(addr))
@@ -41,15 +34,8 @@ static int parse_options(int argc, char **args, t_malcolm  *data)
 
 static int parse_address(char **args, t_malcolm  *data)
 {
-	char *ip_source = parse_ip_address(args[1]);
-    char *ip_target = parse_ip_address(args[3]);
-	if (!ip_source || !ip_target)
-	{
-		log_error("unknown host or invalid IP address");
-		return (1);
-	}
-   	if (!inet_pton(AF_INET, ip_source, data->spoofed_ip) || \
-		!inet_pton(AF_INET, ip_target, data->target_ip))
+   	if (!inet_pton(AF_INET, args[1], data->spoofed_ip) || \
+		!inet_pton(AF_INET, args[3], data->target_ip))
 	{
 		log_error(strerror(errno));
 		return (1);
@@ -73,9 +59,13 @@ static int parse_address(char **args, t_malcolm  *data)
 
 int	parse_input(int argc, char **args, t_malcolm  *data)
 {
-	if (parse_address(args, data)) 
+	if (parse_address(args, data))
+	{
         return (1);
-    if (parse_options(argc, args, data)) 
+	}
+    if (parse_options(argc, args, data))
+	{
         return (1);
+	}
 	return (0);
 }

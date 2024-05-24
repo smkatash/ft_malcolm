@@ -1,5 +1,29 @@
 #include "ft_malcolm.h"
 
+void	resolve_hostname_from_ip(char *dest, unsigned char *ip_addr)
+{
+	struct in_addr addr;
+    struct hostent *host;
+
+    char ip_str[INET_ADDRSTRLEN];
+    if (!inet_ntop(AF_INET, ip_addr, ip_str, INET_ADDRSTRLEN)) {
+        log_error(strerror(errno));
+        return;
+    }
+
+	if (!inet_pton(AF_INET, ip_str, &addr)) {
+        log_error("Hostname not resolved: invalid IP address format");
+        return ;
+    }
+
+    host = gethostbyaddr(&addr, sizeof(addr), AF_INET);
+    if (!host) {
+        log_error(hstrerror(h_errno));
+        return ;
+    }
+	ft_memcpy(dest, host->h_name, HOST_NAME_MAX);
+}
+
 static int    get_interface_name(struct ifaddrs *ifap ,char *ifname, t_malcolm  *data)
 {
     struct ifaddrs  *ifa;
@@ -92,9 +116,18 @@ int send_reply(t_malcolm *data)
     
     if (ntohs(arp_packet->ar_pro) != ETH_P_IP || ntohs(arp_packet->ar_hrd) != ARPHRD_ETHER)
         return (1);
+    log_msg("Now sending an ARP reply to the target address with spoofed source, please wait...", NULL);
+    if (data->hostname)
+    {
+        char sender_hostname[HOST_NAME_MAX];
+        char target_hostname[HOST_NAME_MAX];
+        resolve_hostname_from_ip(sender_hostname, arp_packet->ar_sip);
+        resolve_hostname_from_ip(target_hostname, arp_packet->ar_tip);
+        fprintf(stdout, " sender hostname: %s\n", sender_hostname);
+        fprintf(stdout, " target hostname: %s\n", target_hostname);
+    }
     if (data->verbose)
         log_packet(buffer);
-    log_msg("Now sending an ARP reply to the target address with spoofed source, please wait...", NULL);
     sleep(1);
     if (sendto(data->sock_fd, &buffer, sizeof(buffer), 0, (struct sockaddr*)&(data)->sockaddr_target, sizeof(data->sockaddr_target)) < 0)
 	{

@@ -12,7 +12,7 @@ void    log_ip_address(char *msg, unsigned char *ip)
     fprintf(stdout, "%s %u.%u.%u.%u\n", msg, ip[0], ip[1], ip[2], ip[3]);
 }
 
-void    log_error(char *msg)
+void    log_error(const char *msg)
 {
     fprintf(stderr, "ft_malcolm: %s\n", msg);
 }
@@ -29,31 +29,22 @@ void   log_msg(char *msg, char *str)
 
 void    log_packet(unsigned char *packet)
 {
-    // struct ethhdr *eth_header = (struct ethhdr *)packet;
-    // struct arppckt *arp_packet = (struct arppckt *)(packet + sizeof(struct ethhdr));
-     // printf("Ethernet Header Info:\n");
-        // log_mac_address(" Sender ", src_mac);
-        // log_mac_address(" Target ", dst_mac);
-        // char src_mac_str[18];
-        
-        // snprintf(src_mac_str, sizeof(src_mac_str), "%02x:%02x:%02x:%02x:%02x:%02x",
-        //         src_mac[0], src_mac[1], src_mac[2], src_mac[3], src_mac[4], src_mac[5]);
-        // printf("ARP Packet Info:\n");
-        // printf("  Operation: %s\n", op_code == ARPOP_REQUEST ? "ARP Request" : "ARP Reply");
-        // log_ip_address(" Sender ", arp_packet->ar_sip);
-        // log_ip_address(" Target ", arp_packet->ar_tip);
-        // log_mac_address(" Sender ", arp_packet->ar_sha);
-        // log_mac_address(" Target ", arp_packet->ar_tha);
-        // op_code = ntohs(arp_packet->ar_op);
-    // unsigned char *ar_sha = arp_packet->ar_sha;
-    // unsigned char *ar_tha = arp_packet->ar_tha;
-    // unsigned char *ar_sip = arp_packet->ar_sip;
-    // unsigned char *ar_tip = arp_packet->ar_tip;
+    fprintf(stdout, "\n\t\t\t[     Packet Information     ]\n");
+    struct ethhdr *eth_header = (struct ethhdr *)packet;
+    struct arppckt *arp_packet = (struct arppckt *)(packet + sizeof(struct ethhdr));
+    fprintf(stdout, "Ethernet Header Info:\n");
+    log_mac_address(" - Sender mac address: ", eth_header->h_source);
+    log_mac_address(" - Target mac address: ", eth_header->h_dest);
+    fprintf(stdout, " - Protocol: %s\n", ETH_PROTOCOL_TO_STRING(eth_header->h_proto));
 
-    // printf("ARP Packet Info:\n");
-    // printf("  Operation: %s\n", op_code == ARPOP_REPLY ? "ARP Reply" : "ARP Request");
-    // log_ip_address(" Sender ", ar_sip);
-    // log_ip_address(" Target ", ar_tip);
-    // log_mac_address(" Sender ", ar_sha);
-    // log_mac_address(" Target ", ar_tha);
+    fprintf(stdout, "ARP Packet Info:\n");
+    fprintf(stdout, " - Format of hardware address: %s\n", ARP_HRD_TO_STRING(arp_packet->ar_hrd));
+    fprintf(stdout, " - Format of protocol address: %s\n", ARP_PRO_TO_STRING(arp_packet->ar_pro));
+    fprintf(stdout, " - Length of hardware address: %u\n", arp_packet->ar_hln);
+    fprintf(stdout, " - Length of protocol address: %u\n", arp_packet->ar_pln);
+    fprintf(stdout, " - ARP opcode: %s\n", ARP_OPCODE_TO_STRING(arp_packet->ar_op));
+    log_mac_address(" - Sender mac address: ", arp_packet->ar_sha);
+    log_mac_address(" - Target mac address: ", arp_packet->ar_tha);
+    log_ip_address(" - Sender IP address:", arp_packet->ar_sip);
+    log_ip_address(" - Target IP address:", arp_packet->ar_tip);
 }

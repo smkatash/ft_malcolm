@@ -13,11 +13,20 @@ int process_packet(unsigned char *buffer, t_malcolm *data) {
             return (1);
 
         op_code = ntohs(arp_packet->ar_op);
-        if (op_code != ARPOP_REQUEST)
+        if (op_code != ARP_REQUEST)
             return (1);
         log_msg("An ARP request has been broadcast.", NULL);
         log_mac_address(" mac address of request: ", arp_packet->ar_sha);
         log_ip_address(" IP address of request: ", arp_packet->ar_sip);
+        if (data->hostname)
+        {
+            char sender_hostname[HOST_NAME_MAX];
+            char target_hostname[HOST_NAME_MAX];
+            resolve_hostname_from_ip(sender_hostname, arp_packet->ar_sip);
+            resolve_hostname_from_ip(target_hostname, arp_packet->ar_tip);
+            fprintf(stdout, " sender hostname: %s\n", sender_hostname);
+            fprintf(stdout, " target hostname: %s\n", target_hostname);
+        }
         if (data->verbose)
             log_packet(buffer);
         return (0);
@@ -65,7 +74,7 @@ void    create_ethernet_packet(unsigned char *packet, t_malcolm *data)
 void    create_reply_packet(unsigned char *packet, t_malcolm *data)
 {
     create_ethernet_packet(packet, data);
-    create_arp_packet((packet + sizeof(struct ethhdr)), 2, data);
+    create_arp_packet((packet + sizeof(struct ethhdr)), ARP_REPLY, data);
     uint32_t crc = calculate_crc32(packet, ETH_FRAME_SIZE);
     ft_memcpy((packet + ETH_FRAME_SIZE), &crc, sizeof(crc));
 }

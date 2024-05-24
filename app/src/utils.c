@@ -1,12 +1,5 @@
 #include "ft_malcolm.h"
 
-
-int	is_ipv4(const char *ip)
-{
-	struct	in_addr	ipv4_addr;
-	return	(inet_aton(ip, &ipv4_addr) == 0);
-}
-
 int	is_mac_address(const char *mac)
 {
 	int		i = 0;
