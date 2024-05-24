@@ -7,6 +7,7 @@ This project is implementation of the Address Resolution Protocol spoofing/poiso
 The whole project is done in a ***virtual machine***: You are only allowed to spoof IPs that belong to you, such as your
 VM. Spoofing other IPs might result in problems and/or sanctions.
 
+For testing reasons, docker containers are also included.
 
 * Program takes the following four arguments:
 ```
@@ -25,7 +26,7 @@ VM. Spoofing other IPs might result in problems and/or sanctions.
 
 * To run project
 ```
-make
+cd app && make
 ./ft_malcolm [spoofed_ip] [spoofed_mac] [ip] [mac] [..options]
 ```
 
