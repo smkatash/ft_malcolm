@@ -57,11 +57,14 @@ int get_interface(t_malcolm  *data)
     ft_memcpy(&netip_src, data->spoofed_ip, sizeof(netip_src));
     ft_memcpy(&netip_dst, data->target_ip, sizeof(netip_dst));
     getifaddrs (&ifap);
+    if (!ifap) {
+        return (1);
+    }
     tmp = ifap;
     for (ifa = ifap; ifa; ifa = ifa->ifa_next) {
         if (ifa->ifa_addr && ifa->ifa_addr->sa_family == AF_INET) {
             uint32_t netip = ((struct sockaddr_in *)ifa->ifa_addr)->sin_addr.s_addr;
-            uint32_t netmask = ((struct sockaddr_in *)ifa->ifa_netmask)->sin_addr.s_addr;;
+            uint32_t netmask = ((struct sockaddr_in *)ifa->ifa_netmask)->sin_addr.s_addr;
             uint32_t netstart = (netip & netmask);
             uint32_t netend = (netstart | ~netmask);
             if ((netip_src >= netstart) && (netip_src <= netend) && (netip_dst >= netstart) && (netip_dst <= netend))
@@ -90,7 +93,7 @@ int listen_to_broadcast(t_malcolm *data)
         if (packet_size < 0)
         {
             if (errno == EAGAIN || errno == EWOULDBLOCK) {
-                log_msg("ft_malcolm:", "receive timeout...");
+                log_msg("ft_malcolm:", "received timeout...");
                 continue;
             }
             log_error(strerror(errno));

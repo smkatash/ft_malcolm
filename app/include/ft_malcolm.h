@@ -21,8 +21,8 @@
 #include <signal.h>
 #include <limits.h>
 
-# define MAC_ADDRESS_MAX_LEN 18 // 17 + 1
-# define MAC_LENGTH 6
+# define MAC_ADDRESS_STRING_LEN 18 // 17 + 1
+# define MAC_ADDRESS_BYTE_LENGTH 6
 # define IPV4_LENGTH 4
 # define MIN_ETHERNET_FRAME_SIZE 64 
 # define ETH_FRAME_SIZE (sizeof(struct arppckt) + sizeof(struct ethhdr))

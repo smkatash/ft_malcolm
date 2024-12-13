@@ -5,7 +5,7 @@ int	is_mac_address(const char *mac)
 	int		i = 0;
 	int		counter = 0;
 
-	if (ft_strlen(mac) != MAC_ADDRESS_MAX_LEN - 1)
+	if (ft_strlen(mac) != MAC_ADDRESS_STRING_LEN - 1)
 		return (1);
 
 	while (mac[i])
@@ -46,9 +46,9 @@ int	convert_mac_address_to_bytes(char *macAddr, unsigned char *mac_dst_addr)
 	int		c1;
 	int		c2;
 	char	byte;
-	unsigned char	mac_addr[MAC_LENGTH];
+	unsigned char	mac_addr[MAC_ADDRESS_BYTE_LENGTH];
 
-	while (idx < ft_strlen(macAddr) && idx_mac < MAC_LENGTH)
+	while (idx < ft_strlen(macAddr) && idx_mac < MAC_ADDRESS_BYTE_LENGTH)
 	{
         c1 = convert_hex_to_int(macAddr[idx]);
 		c2 = convert_hex_to_int(macAddr[idx + 1]);
@@ -60,12 +60,12 @@ int	convert_mac_address_to_bytes(char *macAddr, unsigned char *mac_dst_addr)
 		idx += 3;
 	}
 
-	while (idx_mac < MAC_LENGTH)
+	while (idx_mac < MAC_ADDRESS_BYTE_LENGTH)
 	{
 		mac_addr[idx_mac] = 0;
 		idx_mac++;
 	}
-	ft_memcpy(mac_dst_addr, mac_addr, MAC_LENGTH);
+	ft_memcpy(mac_dst_addr, mac_addr, MAC_ADDRESS_BYTE_LENGTH);
 	return (0);
 }
 
